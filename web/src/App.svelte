@@ -1,7 +1,7 @@
 <script lang="ts">
   // Dashboard shell: ticker on top, then filters | list | reader (v5 design).
   // All view state lives in the URL, so any view can be bookmarked or shared.
-  import { onMount } from "svelte";
+  import { onMount, untrack } from "svelte";
   import { fetchFacets, fetchList, type Facets, type ListItem } from "./lib/api.ts";
   import {
     activeCount, clearAll, clearFacet, fromSearchParams, toggle, toSearchParams,
@@ -30,8 +30,9 @@
   let typingTimer: ReturnType<typeof setTimeout> | undefined;
   $effect(() => {
     const next = $state.snapshot(filters) as FilterState;
+    const typing = next.q !== untrack(() => query.q); // read without subscribing, or this loops
     clearTimeout(typingTimer);
-    if (next.q !== query.q) typingTimer = setTimeout(() => (query = next), 200);
+    if (typing) typingTimer = setTimeout(() => (query = next), 200);
     else query = next;
   });
 
