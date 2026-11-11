@@ -1,0 +1,30 @@
+# Raw email data stays out of git (bank research, ~46 MB)
+Data/
+*.pdf
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Pipeline runtime artefacts (classified_emails.json IS committed)
+.cache/
+classification_log.jsonl
+flags.json
+
+# SQLite index is rebuilt from the JSON
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Web
+node_modules/
+web/dist/
+web/data/news.json
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
