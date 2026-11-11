@@ -41,6 +41,7 @@ The brief is `Hiring Task Instructions .pdf` in the project. Its field list, tag
 - LLM provider: **not chosen yet**. Must support image input and structured output. Everything goes through the `LLMClient` protocol; tests use a `FakeLLMClient`, never the network.
 - Index: SQLite via Python's `sqlite3` (FTS5). Written by Python so the same text extraction feeds the classifier and the search.
 - Web: Bun runtime, Svelte 5 + Vite, TypeScript, `bun:sqlite`, `bun test`. UI logic lives in plain TS modules so it can be unit tested; components stay thin.
+- Dashboard design: `docs/design/dashboard-v5-shadcn-compuj.dc.html` ("v5: shadcn x Compu.J", from the Research Dashboard design canvas). Layout of shadcn's Mail example (filters | list | reader), Compu.J skin: near-black panels with thin light borders, Space Grotesk + JetBrains Mono, magenta `#F0287F` with a magenta-to-violet gradient for selection, per-class colours, collapsible filter rail, full-screen reader. Its sample data is placeholder.
 
 ## Layout
 
