@@ -9,41 +9,33 @@ Two parts:
 
 `PRD.md` explains the design and the reasoning behind it. `CLAUDE.md` is the build contract.
 
-## Requirements
+## Run it
 
-- Python 3.11+ and [uv](https://docs.astral.sh/uv/)
-- [Bun](https://bun.sh) 1.4+ (Arch: `sudo pacman -S bun`)
-- For classifying, one of:
-  - [Claude Code](https://claude.com/claude-code) installed and logged in (the default provider; uses your own Claude login, no API key), or
-  - an Anthropic API key in `ANTHROPIC_API_KEY` (`--provider anthropic`)
+You need [Bun](https://bun.sh) 1.4+ and [uv](https://docs.astral.sh/uv/). uv fetches Python and the pinned packages on first use; nothing else to install.
 
-## Install
+Put the dataset folder at `./Data` (or add `--data <path>` to either command), then:
 
 ```bash
-uv sync                  # Python dependencies (pinned in uv.lock)
-cd web && bun install    # dashboard dependencies (pinned in bun.lock)
+bun run classify     # recreates classified_emails.json, offline, from the saved model answers
+bun run dashboard    # installs, builds the search index and UI, serves http://127.0.0.1:3000
 ```
 
-## Run
+`bun run dashboard` alone is enough to see the project; `classified_emails.json` is already in the repo. The dashboard also refreshes the news headlines every 10 minutes while it runs.
 
-```bash
-# 1. Classify the emails (about 200 emails; results are cached in .cache/llm)
-uv run python classify.py --data ~/Downloads/Data --out classified_emails.json
+### What `bun run classify` does
 
-# 2. Build the dashboard's search index from the JSON
-uv run python build_index.py --json classified_emails.json --data ~/Downloads/Data
+It runs `classify.py` over every email folder: extracts the text, PDFs and images, builds the prompt, applies the brief's rules and writes the outputs below. The model's answer for each email is saved in `llm_cache/`, keyed by a hash of the exact input (model, prompt, text and images). Those answers are committed, so on any machine the script finds every email already answered and produces the same JSON byte for byte, with no AI and no key. The model is only called for an email whose content, or the prompt, has changed. That needs either:
 
-# 3. Build and start the dashboard (also refreshes headlines every 10 minutes)
-cd web && bun run build && bun run start
-# open http://127.0.0.1:3000
-```
+- [Claude Code](https://claude.com/claude-code) installed and logged in (the default provider, `--provider claude-code`, model `haiku`), or
+- an Anthropic API key in `ANTHROPIC_API_KEY` (`--provider anthropic`, model `claude-sonnet-5-5`).
 
-Useful options:
+Other options: `--model sonnet` for another model, `--only 035239 035240` for a few emails, `--workers 4` for parallel calls, `--no-cache` to call the model for everything.
 
-- `classify.py --provider claude-code` (default, model `haiku`) or `--provider anthropic` (model `claude-sonnet-5-5`). `--model` picks another model for either, e.g. `--model sonnet`.
-- `classify.py --only 035239 035240` to classify a few emails. `--workers 4` sets parallel calls.
-- `bun run news` fetches headlines once; `bun run news --watch` keeps refreshing every 10 minutes on its own.
-- `bun run dev` runs the API and a Vite dev server with hot reload (http://localhost:5173).
+### Other commands
+
+- `bun run test`: all tests (pytest, bun test, Svelte type check).
+- `bun run news`: fetch headlines once.
+- `cd web && bun run dev`: API plus a Vite dev server with hot reload (http://localhost:5173).
 
 ## Outputs
 
@@ -51,6 +43,7 @@ Useful options:
 | --- | --- |
 | `classified_emails.json` | The deliverable. One record per email folder, exactly the ten fields in the brief's order. |
 | `classification_log.jsonl` | Per email: where each value came from, the LLM's raw answer, rules that changed something, extraction warnings, errors. |
+| `llm_cache/` | The model's saved answer per email (committed), so classification replays offline. |
 | `flags.json` | Files outside the brief's folder definition (anything in `thumbs/`, non-PDF attachments, unreferenced or missing inline images). Not classified, not dropped. |
 | `web/data/emails.db` | SQLite search index, rebuilt from the JSON. Never edited. |
 | `web/data/news.json` | Latest headlines for the ticker. |
@@ -124,8 +117,7 @@ The labels are left blank on purpose so they follow the brief, not the model. Wi
 ## Tests
 
 ```bash
-uv run pytest                       # pipeline
-cd web && bun test && bun run check # API, UI logic, news; Svelte type check
+bun run test    # pytest for the pipeline, bun test for the API, UI logic and news, then the Svelte type check
 ```
 
 No test touches the network or the LLM: they use small synthetic email folders, a fake LLM client and saved feed fixtures.

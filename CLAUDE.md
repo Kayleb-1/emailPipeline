@@ -46,6 +46,8 @@ The brief is `Hiring Task Instructions .pdf` in the project. Its field list, tag
 ## Layout
 
 ```
+package.json             # bun run classify | dashboard | test | news
+llm_cache/               # saved model answers (committed): classify.py replays offline
 classify.py              # CLI entry point: python classify.py --data ./Data --out classified_emails.json
 pipeline/
   taxonomy.py            # brief constants + derived lists
