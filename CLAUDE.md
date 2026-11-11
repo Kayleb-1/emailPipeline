@@ -5,8 +5,9 @@ Context for Claude Code. `PRD.md` holds the full reasoning and decisions; this f
 ## What we're building
 
 - `classify.py`: reads each email folder, classifies it with one LLM call per email, writes `classified_emails.json`.
-- Dashboard (`index.html`, `style.css`, `app.js`): reads that JSON; list, search, filters, viewer, PDF viewing, news ticker.
-- `fetch_news.py`: refreshes `news.json` every 10 minutes.
+- `build_index.py`: builds a read-only SQLite index (`web/data/emails.db`) from `classified_emails.json` plus the extracted email and PDF text. FTS5 full-text search and faceted filters for analysts. The JSON stays the deliverable and the source of truth; the index is derived and rebuilt from scratch every run.
+- Dashboard (`web/`, the brief's "or equivalent" of `index.html` + `style.css` + `app.js`): Svelte 5 single-page app built with Vite, served by a small `Bun.serve` API that queries the index with `bun:sqlite`. List, search, filters, viewer, PDF viewing, news ticker.
+- `web/scripts/fetch-news.ts`: refreshes `web/data/news.json` every 10 minutes.
 - `README.md`: install and run instructions, plus the decisions on the brief's ambiguities.
 
 The brief is `Hiring Task Instructions .pdf` in the project. Its field list, tag lists and rules are the contract.
@@ -34,10 +35,12 @@ The brief is `Hiring Task Instructions .pdf` in the project. Its field list, tag
 
 ## Stack
 
-- Python 3.11+
+- Python 3.11+, managed with `uv` (`pyproject.toml` + `uv.lock`)
 - `beautifulsoup4` + `lxml` (HTML), `pypdf` (PDF text), `pydantic` v2 (schemas), `pytest` (tests)
 - Date spotting: decide in step 7 between regex-spotting + `python-dateutil` and `dateparser.search`, by which passes the tests with fewer false dates
 - LLM provider: **not chosen yet**. Must support image input and structured output. Everything goes through the `LLMClient` protocol; tests use a `FakeLLMClient`, never the network.
+- Index: SQLite via Python's `sqlite3` (FTS5). Written by Python so the same text extraction feeds the classifier and the search.
+- Web: Bun runtime, Svelte 5 + Vite, TypeScript, `bun:sqlite`, `bun test`. UI logic lives in plain TS modules so it can be unit tested; components stay thin.
 
 ## Layout
 
@@ -55,11 +58,16 @@ pipeline/
   llm.py                 # LLMClient protocol, provider adapter, content-hash cache
   rules.py               # verify_companies, enforce_rules
   run.py                 # run(): orchestration and output writing
+  index_db.py            # SQLite index: schema, FTS5, build from JSON + extracted text
+build_index.py           # CLI: python build_index.py --json classified_emails.json --data ./Data --out web/data/emails.db
 tests/
   fixtures/              # tiny synthetic email folders (+ a few dev emails if needed)
   test_*.py              # one file per module
-fetch_news.py
-index.html  style.css  app.js
+web/
+  server/                # Bun.serve: /api/emails, /api/facets, /api/emails/:id, /raw/:id/...
+  src/                   # Svelte app: lib/ (pure TS logic), components/
+  scripts/fetch-news.ts  # news.json every 10 minutes
+  tests/                 # bun test
 README.md
 ```
 
@@ -68,9 +76,9 @@ README.md
 Build one step at a time, in order. For each step:
 
 1. Write the tests first from the PRD's behaviour.
-2. Implement until `pytest` passes.
-3. Show Caleb the diff and test output, explain any decision the PRD didn't settle, then stop for review before the next step.
-4. Commit only when asked.
+2. Implement until `uv run pytest` (or `bun test`) passes.
+3. Commit each function together with its tests, so every commit is green and small enough to proofread. Conventional Commits (`feat(reader): ...`, `test(...)`, `docs: ...`, `chore: ...`). Commit straight to `main` and push.
+4. At the end of the step, show Caleb the commits, diff highlights and test output, explain any decision the PRD didn't settle, then stop for review before the next step.
 
 Prefer small pure functions. No network in unit tests. Keep functions matching the PRD's names and signatures; if a signature needs to change, say why first.
 
@@ -91,11 +99,15 @@ Prefer small pure functions. No network in unit tests. Keep functions matching t
 | 10 | `rules.py` | One test per rule 1 to 8 in the PRD, plus their order (market wrap YES short-circuits everything) |
 | 11 | `run.py` + `classify.py` | End to end on fixtures with the fake client: one record per email folder, valid JSON, exactly ten fields, log and flags written |
 | 12 | Live run + evaluation | Real provider on the data; hand-labelled evaluation set (covering every asset class and edge case); per-field scores and run-to-run agreement; reported as an initial evaluation |
-| 13 | Dashboard, `fetch_news.py`, README | Every brief requirement for the dashboard and ticker met; README covers install, run and the ambiguity decisions |
+| 13a | `index_db.py` + `build_index.py` | Row counts match the JSON; join tables correct; FTS finds a body-only term; rebuild is idempotent; records breaking the ten-field schema are rejected |
+| 13b | Bun API (`web/server`) | Each filter alone and combined (OR within a facet, AND across); FTS plus filters; null dates; facet counts; `cid:` rewrite; path traversal rejected; unknown id 404 |
+| 13c | Svelte UI | Filter state round-trips through the URL; chips add and remove; query strings built correctly; every brief dashboard requirement met |
+| 13d | News ticker | Feed fixture parsed into headlines; `news.json` has `updated_at`; ticker scrolls, pauses on hover, links open the article |
+| 13e | README | Install, run order and the ambiguity decisions |
 
 ## Open decisions to raise when we reach them
 
 - LLM provider (before step 9).
 - Date-spotting library (step 7).
 - Exact boundary between data tables and layout tables (step 4), decided with fixtures.
-- News source for the ticker (step 13).
+- News source for the ticker (step 13d).

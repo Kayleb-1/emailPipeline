@@ -9,7 +9,7 @@ Take our unstructured data (market research emails about different asset classes
 Two parts, as the brief defines them:
 
 - **Classification pipeline** (`classify.py`): reads each email folder, tags it with asset classes, industries and companies using an LLM, and writes `classified_emails.json`, one entry per email.
-- **Dashboard** (`index.html` + `style.css` + `app.js`): reads that JSON and lets an analyst browse, search, filter and read each email, with a live news ticker on top.
+- **Dashboard** (Svelte 5 + Bun, the brief's "or equivalent" of `index.html` + `style.css` + `app.js`): reads that JSON, through a SQLite index built from it, and lets an analyst browse, search, filter and read each email, with a live news ticker on top.
 
 This doc goes through the four human steps we took to get there:
 
@@ -352,7 +352,7 @@ def enforce_rules(det: DeterministicFields, llm: LLMResult, corpus: str) -> Emai
 def run(data_dir: Path, out_path: Path) -> None: ...      # writes JSON, log and flags
 ```
 
-Run: `python classify.py --data ./Data --out classified_emails.json`
+Run: `uv run python classify.py --data ./Data --out classified_emails.json`, then `uv run python build_index.py` for the dashboard's index.
 
 ### Assumptions and tradeoffs
 
@@ -415,7 +415,17 @@ Things the brief leaves open. Each gets a decision documented in the README.
 
 Requirements from the brief, to be detailed in a follow-up.
 
-**Dashboard** (single page, reads `classified_emails.json`):
+**Stack:** Svelte 5 single-page app (Vite) on the Bun runtime. A small `Bun.serve` API answers queries and serves each email's HTML, inline images and PDFs.
+
+**Query index (SQLite):** analysts need to find research, not just page through it. `build_index.py` builds a read-only SQLite database from `classified_emails.json` plus the extracted email and PDF text:
+
+- `emails` (the ten fields) and join tables for asset tags, companies, industries and PDFs, so filters can show counts per value.
+- An FTS5 table over title, bank, companies, email body and PDF text, so a search finds every note that discusses a name or theme, not only those where it was tagged.
+- Filters combine as OR within a facet and AND across facets. Dates filter by range, with emails that have no date kept findable.
+
+Bounds: the JSON is the deliverable and the source of truth. The index is derived, rebuilt from scratch each run, never edited, and adds nothing to the JSON. At 200 emails the browser could filter the JSON alone; the index is for full-text search and clean faceted queries, not speed.
+
+**Dashboard** (single page, reads `classified_emails.json` through the index):
 
 - Scrollable email list showing title, bank, date and asset tags
 - Viewer that renders the email HTML when selected (sandboxed iframe), with its inline images
@@ -430,7 +440,7 @@ Requirements from the brief, to be detailed in a follow-up.
 
 - Live financial headlines from a real source, scrolling automatically, pausing on hover
 - Shows when headlines were last updated; each headline opens its article
-- `fetch_news.py` refreshes on a schedule (every 10 minutes) and writes `news.json` for the frontend
+- `web/scripts/fetch-news.ts` refreshes on a schedule (every 10 minutes) and writes `news.json` for the frontend
 - Source: a free news API or RSS feed. Scraping Finviz is allowed by the brief, but its markup changes and it discourages scrapers.
 
-The page fetches local JSON files, so it's served by a local static server (`python -m http.server`) rather than opened as a file.
+The page talks to the local Bun server (`bun run start`), which also runs the news refresh, rather than being opened as a file.
