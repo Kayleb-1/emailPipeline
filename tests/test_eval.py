@@ -75,3 +75,28 @@ def test_cli(tmp_path, capsys):
     report = json.loads((tmp_path / "r.json").read_text())
     assert report["scores"]["fields"]["date"]["accuracy"] == 1.0
     assert report["run_to_run"]["agreement"]["bank"] == 1.0
+
+
+from eval.make_template import pick, template  # noqa: E402
+
+
+def test_pick_covers_buckets_and_is_deterministic():
+    pred = {}
+    for n, tag in enumerate(["Macro", "FX", "Equity", "Market Wrap"] * 5):
+        pred[f"{n:03d}"] = rec(f"{n:03d}", primary_asset_tag=tag,
+                               date=None if n % 7 == 0 else "2026-04-09",
+                               companies_mentioned=["Alpha"] if tag == "Equity" else [])
+    log = {"005": {"images": ["a.png"]}}
+    ids = pick(pred, log, size=10)
+    assert ids == pick(pred, log, size=10)
+    assert len(ids) >= 10 and len(set(ids)) == len(ids)
+    assert {pred[i]["primary_asset_tag"] for i in ids} == {"Macro", "FX", "Equity", "Market Wrap"}
+    assert "005" in ids
+    assert any(pred[i]["date"] is None for i in ids)
+
+
+def test_template_is_blank_ten_field_records():
+    (t,) = template(["035239"])
+    assert list(t) == ["folder_name", "bank", "date", "market_wrap", "primary_asset_tag", "asset_tags",
+                       "companies_mentioned", "industry_subindustry", "pdf_attachment", "source_file"]
+    assert t["source_file"] == "035239" and t["bank"] is None and t["asset_tags"] == []
