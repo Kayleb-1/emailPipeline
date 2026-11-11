@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Example Atom</title>
+  <entry>
+    <title type="html">Central bank holds rates</title>
+    <link rel="alternate" href="https://atom.example.com/rates?a=1&amp;b=2"/>
+    <updated>2026-11-11T10:10:00Z</updated>
+  </entry>
+  <entry><title>STOCKS RISE AS YIELDS EASE</title><link href="https://atom.example.com/dup"/><updated>2026-11-11T08:00:00Z</updated></entry>
+</feed>

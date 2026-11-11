@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel><title>Example Wire</title>
+  <item>
+    <title><![CDATA[Stocks rise as <b>yields</b> ease]]></title>
+    <link>https://news.example.com/a?x=1&amp;y=2</link>
+    <pubDate>Wed, 11 Nov 2026 10:05:00 GMT</pubDate>
+  </item>
+  <item>
+    <title>Oil &amp; gas shares slip &#8212; demand worries</title>
+    <link>https://news.example.com/b</link>
+    <pubDate>Wed, 11 Nov 2026 09:40:00 +0000</pubDate>
+  </item>
+  <item><title>No link here</title></item>
+  <item><title>Bad scheme</title><link>javascript:alert(1)</link></item>
+  <item><title>Undated headline</title><guid>https://news.example.com/c</guid></item>
+</channel></rss>
