@@ -111,7 +111,7 @@ def classify_email(
 
 # --- Anthropic adapter -------------------------------------------------------------
 
-DEFAULT_MODEL = "claude-opus-5-5"
+DEFAULT_MODEL = "claude-sonnet-5-5"
 DEFAULT_EFFORT = "medium"
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
 
@@ -183,7 +183,7 @@ def image_content(images: list[InlineImage]) -> tuple[list[dict], list[str]]:
 
 
 class AnthropicLLMClient:
-    """Claude via the Anthropic SDK: image input + structured output (JSON schema).
+    """Claude (Sonnet 5.5 by default) via the Anthropic SDK: image input + structured output (JSON schema).
 
     Sampling parameters (temperature) are no longer accepted by the API, so run-to-run
     stability comes from the fixed prompt, the constrained schema and the cache.

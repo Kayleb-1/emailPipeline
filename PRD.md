@@ -194,7 +194,7 @@ flowchart TD
 - **PDFs:** full text from every PDF. A PDF that yields little or no text (scanned pages, image-only tables) is logged as an extraction warning. Charts and images inside PDFs are not interpreted visually: a deliberate scope limit, not a gap in the architecture.
 - **Images:** every image the HTML references that exists in `inline/`, in the order it appears, each paired with its nearest surrounding text or caption. No size cutoff and no rules for spotting decorative images: the model decides what is relevant. Images the HTML doesn't reference are flagged, not sent.
 
-**LLM call:** one call per email, including images whenever the email has them. Claude Opus 5.5 (`claude-opus-5-5`, effort `medium`). The API no longer accepts sampling parameters, so temperature 0 isn't available; stability comes from a fixed prompt, structured output whose allowed values are the brief's lists, and the cache. Results are cached by a hash of the content so re-runs are free and identical. The provider sits behind one interface, which must support image inputs and structured outputs.
+**LLM call:** one call per email, including images whenever the email has them. Claude Sonnet 5.5 (`claude-sonnet-5-5`, effort `medium`; chosen over Opus 5.5 for cost). The API no longer accepts sampling parameters, so temperature 0 isn't available; stability comes from a fixed prompt, structured output whose allowed values are the brief's lists, and the cache. Results are cached by a hash of the content so re-runs are free and identical. The provider sits behind one interface, which must support image inputs and structured outputs.
 
 **Companies: what counts as material.** The LLM returns only the material companies, using this definition in the prompt: a company is material when the email says something about the company itself (its business, results, estimates, valuation, rating or outlook). Not material: peers named only for comparison, companies cited as an example, names in lists, tables, charts, source lines or disclaimers, and the publishing bank. Code then drops any name that doesn't appear in the email or PDF text, which catches invented companies at no cost.
 
@@ -409,7 +409,7 @@ Things the brief leaves open. Each gets a decision documented in the README.
 - [x] **"Materially discussed" companies:** defined under Firmed choices (a short definition the LLM applies). The test set's labels use the same definition.
 - [x] **No date anywhere** in the email or PDFs: `null`, which doesn't match YYYY-MM-DD.
 - [x] **Duplicate emails:** one entry per email folder, so duplicates are classified separately.
-- [x] **LLM provider:** Anthropic, Claude Opus 5.5. The interface keeps it swappable.
+- [x] **LLM provider:** Anthropic, Claude Sonnet 5.5 (cheaper than Opus 5.5; `--model` switches). The interface keeps it swappable.
 
 ## Dashboard and news ticker
 

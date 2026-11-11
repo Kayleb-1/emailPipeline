@@ -216,7 +216,7 @@ def test_adapter_request_shape_and_parsed_result(tmp_path, image):
     assert isinstance(client, LLMClient)
     assert client.classify("SYS", "USER", [image]) == RESULT
     kw = sdk.kwargs
-    assert kw["model"] == "claude-opus-5-5"
+    assert kw["model"] == "claude-sonnet-5-5"
     assert kw["system"][0]["text"] == "SYS"
     assert kw["output_config"]["format"]["schema"] == llm_json_schema()
     assert kw["output_config"]["effort"] == "medium"
