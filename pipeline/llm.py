@@ -228,3 +228,104 @@ class AnthropicLLMClient:
         if text is None:
             raise LLMResponseError("response has no text block")
         return parse_llm_response(text)
+
+
+# --- Claude Code CLI adapter (uses the local `claude` login, no API key) -------------
+
+
+class ClaudeCodeLLMClient:
+    """Claude through the Claude Code CLI in headless mode (`claude -p`).
+
+    Runs on the user's own Claude login, so no API key is stored or exposed.
+    Each email is one CLI run from an empty temp folder with no tools, no
+    settings, no MCP servers and no saved session: just the system prompt, the
+    email content (text + base64 images, same blocks as the API adapter) and
+    the JSON schema, which the CLI enforces and returns as structured_output.
+    """
+
+    def __init__(self, model: str = "haiku", claude_bin: str = "claude",
+                 timeout_s: int = 900, runner=None):
+        import subprocess
+
+        self.model = model
+        self.claude_bin = claude_bin
+        self.timeout_s = timeout_s
+        self.run = runner or subprocess.run
+        self.model_id = f"claude-code/{model}"
+        self.last_warnings: list[str] = []
+        self._schema = json.dumps(llm_json_schema())
+
+    def command(self, system: str) -> list[str]:
+        return [
+            self.claude_bin, "-p",
+            "--input-format", "stream-json", "--output-format", "stream-json", "--verbose",
+            "--model", self.model,
+            "--tools", "",
+            "--no-session-persistence",
+            "--strict-mcp-config",
+            "--setting-sources", "",
+            "--system-prompt", system,
+            "--json-schema", self._schema,
+        ]
+
+    def classify(self, system: str, user: str, images: list[InlineImage]) -> LLMResult:
+        import tempfile
+
+        blocks, self.last_warnings = image_content(images)
+        message = {"type": "user", "message": {"role": "user",
+                   "content": [*blocks, {"type": "text", "text": user}]}}
+        with tempfile.TemporaryDirectory(prefix="classify-") as cwd:
+            try:
+                proc = self.run(
+                    self.command(system), input=json.dumps(message) + "\n",
+                    capture_output=True, text=True, cwd=cwd, timeout=self.timeout_s,
+                )
+            except FileNotFoundError as exc:
+                raise LLMResponseError(f"`{self.claude_bin}` not found; install Claude Code") from exc
+            except Exception as exc:  # timeout
+                raise LLMResponseError(f"claude CLI failed: {type(exc).__name__}: {exc}") from exc
+        return parse_claude_code_output(proc.stdout, proc.stderr, proc.returncode)
+
+
+def parse_claude_code_output(stdout: str, stderr: str = "", returncode: int = 0) -> LLMResult:
+    """Pull the structured result out of `claude -p --output-format stream-json`."""
+    result = None
+    for line in stdout.splitlines():
+        line = line.strip()
+        if not line.startswith("{"):
+            continue
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if event.get("type") == "result":
+            result = event
+    if result is None:
+        detail = (stderr or stdout).strip()[-300:]
+        raise LLMResponseError(f"claude CLI gave no result (exit {returncode}): {detail}")
+    if result.get("is_error") or result.get("subtype") != "success":
+        raise LLMResponseError(
+            f"claude CLI error ({result.get('subtype')}): {str(result.get('result', ''))[:300]}"
+        )
+    structured = result.get("structured_output")
+    return parse_llm_response(structured if structured is not None else result.get("result", ""))
+
+
+# --- provider registry ------------------------------------------------------------------
+
+PROVIDERS = {
+    "claude-code": {"default_model": "haiku", "note": "local Claude Code login, no API key"},
+    "anthropic": {"default_model": DEFAULT_MODEL, "note": "Anthropic API, needs ANTHROPIC_API_KEY"},
+}
+DEFAULT_PROVIDER = "claude-code"
+
+
+def make_client(provider: str = DEFAULT_PROVIDER, model: str | None = None,
+                effort: str = DEFAULT_EFFORT) -> LLMClient:
+    """Build an LLM client by provider name. Swapping providers is this one call."""
+    if provider not in PROVIDERS:
+        raise ValueError(f"unknown provider {provider!r}; choose from {sorted(PROVIDERS)}")
+    model = model or PROVIDERS[provider]["default_model"]
+    if provider == "claude-code":
+        return ClaudeCodeLLMClient(model=model)
+    return AnthropicLLMClient(model=model, effort=effort)

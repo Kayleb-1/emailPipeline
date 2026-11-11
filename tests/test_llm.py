@@ -246,3 +246,95 @@ def test_model_id_includes_model_and_effort_for_the_cache():
 def test_adapter_raises_on_unusable_responses(sdk):
     with pytest.raises(LLMResponseError):
         AnthropicLLMClient(sdk_client=sdk).classify("s", "u", [])
+
+
+# --- Claude Code CLI adapter (subprocess stubbed) -------------------------------------------
+
+from pipeline.llm import (  # noqa: E402
+    PROVIDERS,
+    ClaudeCodeLLMClient,
+    make_client,
+    parse_claude_code_output,
+)
+
+
+def _events(*events) -> str:
+    return "\n".join(json.dumps(e) for e in events) + "\n"
+
+
+OK_OUTPUT = _events(
+    {"type": "system", "subtype": "init"},
+    {"type": "assistant", "message": {}},
+    {"type": "result", "subtype": "success", "is_error": False,
+     "result": RESULT.model_dump_json(), "structured_output": RESULT.model_dump()},
+)
+
+
+class StubRun:
+    def __init__(self, stdout=OK_OUTPUT, stderr="", returncode=0, exc=None):
+        self.stdout, self.stderr, self.returncode, self.exc = stdout, stderr, returncode, exc
+        self.calls = []
+
+    def __call__(self, cmd, **kw):
+        self.calls.append((cmd, kw))
+        if self.exc:
+            raise self.exc
+        return SimpleNamespace(stdout=self.stdout, stderr=self.stderr, returncode=self.returncode)
+
+
+def test_claude_code_command_is_locked_down_and_sends_images(image):
+    run = StubRun()
+    client = ClaudeCodeLLMClient(model="haiku", runner=run)
+    assert isinstance(client, LLMClient)
+    assert client.classify("SYS", "USER", [image]) == RESULT
+    (cmd, kw), = run.calls
+    assert cmd[:2] == ["claude", "-p"]
+    flag = lambda name: cmd[cmd.index(name) + 1]  # noqa: E731
+    assert flag("--model") == "haiku"
+    assert flag("--tools") == ""
+    assert flag("--setting-sources") == ""
+    assert flag("--system-prompt") == "SYS"
+    assert json.loads(flag("--json-schema")) == llm_json_schema()
+    assert "--no-session-persistence" in cmd and "--strict-mcp-config" in cmd
+    message = json.loads(kw["input"])
+    content = message["message"]["content"]
+    assert [b["type"] for b in content] == ["text", "image", "text"]
+    assert content[-1]["text"] == "USER"
+    assert kw["cwd"] != str(Path.cwd())  # runs from an empty temp folder
+
+
+def test_claude_code_model_id_feeds_the_cache():
+    assert ClaudeCodeLLMClient(model="haiku").model_id != ClaudeCodeLLMClient(model="sonnet").model_id
+
+
+def test_parse_falls_back_to_result_text():
+    out = _events({"type": "result", "subtype": "success", "is_error": False,
+                   "result": RESULT.model_dump_json()})
+    assert parse_claude_code_output(out) == RESULT
+
+
+@pytest.mark.parametrize(
+    "run",
+    [
+        StubRun(stdout="", stderr="Not logged in", returncode=1),
+        StubRun(stdout=_events({"type": "result", "subtype": "error_max_turns", "is_error": True, "result": "x"})),
+        StubRun(stdout=_events({"type": "result", "subtype": "success", "is_error": True,
+                                "result": "Claude usage limit reached"})),
+        StubRun(stdout=_events({"type": "result", "subtype": "success", "is_error": False,
+                                "structured_output": {"bank": "x"}})),
+        StubRun(exc=FileNotFoundError("claude")),
+        StubRun(exc=TimeoutError("slow")),
+    ],
+)
+def test_claude_code_failures_raise_response_errors(run):
+    with pytest.raises(LLMResponseError):
+        ClaudeCodeLLMClient(runner=run).classify("s", "u", [])
+
+
+def test_make_client_by_provider():
+    assert isinstance(make_client("claude-code"), ClaudeCodeLLMClient)
+    assert make_client("claude-code").model == "haiku"
+    assert make_client("claude-code", model="sonnet").model == "sonnet"
+    with pytest.raises(ValueError):
+        make_client("nope")
+    assert set(PROVIDERS) >= {"claude-code", "anthropic"}
