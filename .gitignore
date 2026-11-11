@@ -28,3 +28,6 @@ web/data/news.json
 .idea/
 .vscode/
 .DS_Store
+
+# Small synthetic test fixtures are allowed
+!tests/fixtures/**/*.pdf
