@@ -1,5 +1,7 @@
 # Market research email classifier and dashboard
 
+![Dashboard](docs/screenshots/dashboard.png)
+
 Two parts:
 
 - **`classify.py`** reads each email folder, classifies it with one LLM call, and writes `classified_emails.json` (one entry per email, the brief's ten fields).
@@ -98,9 +100,26 @@ Adding another (an OpenAI-compatible endpoint, a local model) is one class with 
 - News ticker from CNBC, MarketWatch, Yahoo Finance and FT Markets RSS feeds. It scrolls, pauses on hover, shows when it was last updated, and opens articles in a new tab.
 - The view lives in the URL, so a filtered view or a selected note can be bookmarked or shared.
 
+More screenshots: [search with filters](docs/screenshots/search-filters.png), [market wrap with its PDF](docs/screenshots/market-wrap-pdf.png).
+
 ### Why SQLite
 
 The JSON is the deliverable and the source of truth. The index is derived from it so analysts can search inside the emails and PDFs, not just the tags, and filter with live counts. At this size the browser could filter the JSON alone; the index is for retrieval, not speed.
+
+## Results and evaluation
+
+The committed `classified_emails.json` comes from Claude Haiku 5.5 through Claude Code: 200 records, 0 errors. The brief's rules changed 3 values the model returned, and bank harmonisation merged 4 spellings (for example `UBP` into `Union Bancaire Privée`). Distribution (`eval/distribution_report.json`): primary tags Equity 73, Macro 68, Fixed Income 26, Market Wrap 13, Commodities 8, FX 8, Thematics 4; 12 banks; 7.5% without a date.
+
+Scoring against hand labels:
+
+```bash
+uv run python -m eval.make_template          # picks ~20 emails by coverage, writes a blank eval/labels_template.json
+# fill it in against the brief and save as eval/labels.json
+uv run python -m eval.score --pred classified_emails.json --labels eval/labels.json
+uv run python -m eval.score --pred run1.json --compare run2.json   # run-to-run agreement
+```
+
+The labels are left blank on purpose so they follow the brief, not the model. With a set this small the scores are an initial evaluation: they show where the pipeline fails, not representative accuracy.
 
 ## Tests
 
