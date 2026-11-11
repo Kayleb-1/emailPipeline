@@ -1,0 +1,13 @@
+{
+  "title": "EUR - Forecast update",
+  "bank": "UBP",
+  "date_choice": null,
+  "market_wrap": false,
+  "primary_asset_tag": "FX",
+  "asset_tags": [
+    "FX",
+    "EUR"
+  ],
+  "companies_mentioned": [],
+  "industry_subindustry": []
+}

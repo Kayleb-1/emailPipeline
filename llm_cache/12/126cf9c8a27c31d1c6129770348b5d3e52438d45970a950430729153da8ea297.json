@@ -1,0 +1,17 @@
+{
+  "title": "Inflation-Linked Daily",
+  "bank": "Barclays",
+  "date_choice": "2026-04-13",
+  "market_wrap": false,
+  "primary_asset_tag": "Fixed Income",
+  "asset_tags": [
+    "Fixed Income",
+    "Rates Strategy",
+    "Macro",
+    "Developed Markets",
+    "Commodities",
+    "Energy"
+  ],
+  "companies_mentioned": [],
+  "industry_subindustry": []
+}

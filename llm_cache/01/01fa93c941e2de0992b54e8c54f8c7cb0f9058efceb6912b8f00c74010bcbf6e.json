@@ -1,0 +1,17 @@
+{
+  "title": "Equity change in recommendation (not in your portfolio)",
+  "bank": "Union Bancaire Privée",
+  "date_choice": "2026-04-09",
+  "market_wrap": false,
+  "primary_asset_tag": "Equity",
+  "asset_tags": [
+    "Equity",
+    "Company Research"
+  ],
+  "companies_mentioned": [
+    "TECHNIP ENERGIES NV"
+  ],
+  "industry_subindustry": [
+    "ENERGY > Oil Services"
+  ]
+}

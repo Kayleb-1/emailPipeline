@@ -1,0 +1,36 @@
+{
+  "title": "Cross-Asset Weekly: The twisted path towards an exit",
+  "bank": "J. Safra Sarasin",
+  "date_choice": "2026-04-10",
+  "market_wrap": false,
+  "primary_asset_tag": "Macro",
+  "asset_tags": [
+    "Macro",
+    "Developed Markets",
+    "Emerging Markets",
+    "Fixed Income",
+    "Rates Strategy",
+    "Credit Strategy",
+    "Equity",
+    "Portfolio Strategy",
+    "FX",
+    "USD",
+    "Commodities",
+    "Energy",
+    "Metals"
+  ],
+  "companies_mentioned": [
+    "Nvidia",
+    "Samsung",
+    "TSMC",
+    "Meta",
+    "Amazon"
+  ],
+  "industry_subindustry": [
+    "TECHNOLOGY > Semiconductors",
+    "TECHNOLOGY > Software",
+    "TECHNOLOGY > Hardware",
+    "FINANCIAL SERVICES > Banks",
+    "ENERGY > Energy"
+  ]
+}

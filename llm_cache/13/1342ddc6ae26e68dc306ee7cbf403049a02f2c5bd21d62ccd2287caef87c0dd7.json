@@ -1,0 +1,28 @@
+{
+  "title": "Signature Digest",
+  "bank": "Barclays",
+  "date_choice": "2026-04-13",
+  "market_wrap": false,
+  "primary_asset_tag": "Macro",
+  "asset_tags": [
+    "Macro",
+    "Developed Markets",
+    "Emerging Markets",
+    "Fixed Income",
+    "Rates Strategy",
+    "Credit Strategy",
+    "FX",
+    "USD",
+    "Equity",
+    "Company Research",
+    "Portfolio Strategy"
+  ],
+  "companies_mentioned": [
+    "IMI",
+    "BOY",
+    "ROR"
+  ],
+  "industry_subindustry": [
+    "INDUSTRIALS > Capital Goods"
+  ]
+}

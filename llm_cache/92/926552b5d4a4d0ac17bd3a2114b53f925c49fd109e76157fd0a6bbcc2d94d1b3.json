@@ -1,0 +1,21 @@
+{
+  "title": "The spectre of stagflation",
+  "bank": "Julius Baer",
+  "date_choice": "2026-04-10",
+  "market_wrap": false,
+  "primary_asset_tag": "Macro",
+  "asset_tags": [
+    "Macro",
+    "Fixed Income",
+    "Rates Strategy",
+    "Equity",
+    "Portfolio Strategy",
+    "Commodities",
+    "Energy",
+    "Metals"
+  ],
+  "companies_mentioned": [],
+  "industry_subindustry": [
+    "ENERGY > Energy"
+  ]
+}

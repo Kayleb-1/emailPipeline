@@ -1,0 +1,18 @@
+{
+  "title": "Mounjaro+Zepbound Script Tracker",
+  "bank": "Morgan Stanley",
+  "date_choice": "2026-04-10",
+  "market_wrap": false,
+  "primary_asset_tag": "Equity",
+  "asset_tags": [
+    "Equity",
+    "Company Research"
+  ],
+  "companies_mentioned": [
+    "Eli Lilly & Co.",
+    "Novo"
+  ],
+  "industry_subindustry": [
+    "HEALTHCARE > Pharmaceuticals"
+  ]
+}

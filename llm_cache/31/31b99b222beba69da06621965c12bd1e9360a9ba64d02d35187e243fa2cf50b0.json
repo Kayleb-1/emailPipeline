@@ -1,0 +1,18 @@
+{
+  "title": "The Factory Daily Letter",
+  "bank": "Pictet",
+  "date_choice": null,
+  "market_wrap": false,
+  "primary_asset_tag": "Macro",
+  "asset_tags": [
+    "Macro",
+    "Commodities",
+    "Energy",
+    "Equity",
+    "Portfolio Strategy"
+  ],
+  "companies_mentioned": [],
+  "industry_subindustry": [
+    "FINANCIAL SERVICES > Banks"
+  ]
+}

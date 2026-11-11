@@ -1,0 +1,30 @@
+{
+  "title": "A bear trap?",
+  "bank": "Julius Baer",
+  "date_choice": "2026-04-01",
+  "market_wrap": false,
+  "primary_asset_tag": "Equity",
+  "asset_tags": [
+    "Equity",
+    "Portfolio Strategy",
+    "Fixed Income",
+    "Rates Strategy",
+    "Commodities",
+    "Energy",
+    "FX"
+  ],
+  "companies_mentioned": [
+    "Western Digital",
+    "Deutsche Boerse",
+    "Cisco Systems",
+    "Zurich Insurance",
+    "Swisscom"
+  ],
+  "industry_subindustry": [
+    "TECHNOLOGY > Hardware",
+    "FINANCIAL SERVICES > Capital Markets",
+    "TECHNOLOGY > Communications Technology",
+    "FINANCIAL SERVICES > Insurance",
+    "TELECOM SERVICES > Telecom Services"
+  ]
+}

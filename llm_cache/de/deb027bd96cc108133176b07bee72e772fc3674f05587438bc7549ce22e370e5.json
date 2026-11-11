@@ -1,0 +1,34 @@
+{
+  "title": "This week's most read research: Equities – Europe's top ten",
+  "bank": "Deutsche Bank",
+  "date_choice": "2026-04-10",
+  "market_wrap": false,
+  "primary_asset_tag": "Equity",
+  "asset_tags": [
+    "Equity",
+    "Company Research",
+    "Portfolio Strategy",
+    "Macro",
+    "Developed Markets",
+    "Commodities",
+    "Energy"
+  ],
+  "companies_mentioned": [
+    "Safran",
+    "UMG",
+    "UBS",
+    "Diageo",
+    "Balfour Beatty",
+    "Kier",
+    "Morgan Sindall"
+  ],
+  "industry_subindustry": [
+    "INDUSTRIALS > Aerospace & Defense",
+    "CONSUMER CYCLICALS > Media",
+    "FINANCIAL SERVICES > Banks",
+    "FINANCIAL SERVICES > Brokers & Asset Managers",
+    "CONSUMER STAPLES > Beverages",
+    "INDUSTRIALS > Construction",
+    "BASIC MATERIALS > Chemicals"
+  ]
+}

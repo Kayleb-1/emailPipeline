@@ -1,0 +1,21 @@
+{
+  "title": "Change of voltage: SU to OW; ABB & LR to EW; RXL to UW",
+  "bank": "Barclays",
+  "date_choice": "2026-04-13",
+  "market_wrap": false,
+  "primary_asset_tag": "Equity",
+  "asset_tags": [
+    "Equity",
+    "Company Research"
+  ],
+  "companies_mentioned": [
+    "SU",
+    "ABB",
+    "LR",
+    "RXL",
+    "SIE"
+  ],
+  "industry_subindustry": [
+    "INDUSTRIALS > Electrical Equipment"
+  ]
+}

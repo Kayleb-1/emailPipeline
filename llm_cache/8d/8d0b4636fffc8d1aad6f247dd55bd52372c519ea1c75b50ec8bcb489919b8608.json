@@ -1,0 +1,22 @@
+{
+  "title": "The Week Ahead FX",
+  "bank": "Union Bancaire Privée",
+  "date_choice": null,
+  "market_wrap": false,
+  "primary_asset_tag": "FX",
+  "asset_tags": [
+    "FX",
+    "USD",
+    "GBP",
+    "JPY",
+    "EUR",
+    "Other",
+    "Macro",
+    "Developed Markets",
+    "Emerging Markets",
+    "Fixed Income",
+    "Rates Strategy"
+  ],
+  "companies_mentioned": [],
+  "industry_subindustry": []
+}

@@ -1,0 +1,25 @@
+{
+  "title": "Forex Views",
+  "bank": "Union Bancaire Privée",
+  "date_choice": null,
+  "market_wrap": false,
+  "primary_asset_tag": "FX",
+  "asset_tags": [
+    "FX",
+    "USD",
+    "EUR",
+    "JPY",
+    "GBP",
+    "CHF",
+    "Other",
+    "Macro",
+    "Developed Markets",
+    "Emerging Markets",
+    "Commodities",
+    "Energy",
+    "Fixed Income",
+    "Rates Strategy"
+  ],
+  "companies_mentioned": [],
+  "industry_subindustry": []
+}

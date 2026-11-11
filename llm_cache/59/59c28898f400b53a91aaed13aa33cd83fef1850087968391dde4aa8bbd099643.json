@@ -1,0 +1,13 @@
+{
+  "title": "Government Bonds & T-bills Auction Calendar",
+  "bank": "Barclays",
+  "date_choice": "2026-04-10",
+  "market_wrap": false,
+  "primary_asset_tag": "Fixed Income",
+  "asset_tags": [
+    "Fixed Income",
+    "Rates Strategy"
+  ],
+  "companies_mentioned": [],
+  "industry_subindustry": []
+}

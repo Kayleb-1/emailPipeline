@@ -1,0 +1,26 @@
+{
+  "title": "GS flow and positioning observations",
+  "bank": "Goldman Sachs",
+  "date_choice": "2026-04-13",
+  "market_wrap": false,
+  "primary_asset_tag": "Equity",
+  "asset_tags": [
+    "Equity",
+    "Portfolio Strategy",
+    "Thematic Investing",
+    "Macro",
+    "Developed Markets",
+    "Commodities",
+    "Energy",
+    "Fixed Income",
+    "Rates Strategy",
+    "Credit Strategy"
+  ],
+  "companies_mentioned": [],
+  "industry_subindustry": [
+    "TECHNOLOGY > Software",
+    "TECHNOLOGY > Semiconductors",
+    "FINANCIAL SERVICES > Banks",
+    "ENERGY > Energy"
+  ]
+}

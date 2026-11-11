@@ -1,0 +1,21 @@
+{
+  "title": "Biopharma Clinical Trial Pipeline Tracker",
+  "bank": "Morgan Stanley",
+  "date_choice": "2026-04-09",
+  "market_wrap": false,
+  "primary_asset_tag": "Equity",
+  "asset_tags": [
+    "Equity",
+    "Company Research"
+  ],
+  "companies_mentioned": [
+    "Merck",
+    "Rocket Pharmaceuticals",
+    "Viking Therapeutics",
+    "Bristol-Myers Squibb"
+  ],
+  "industry_subindustry": [
+    "HEALTHCARE > Pharmaceuticals",
+    "HEALTHCARE > Biotechnology"
+  ]
+}
