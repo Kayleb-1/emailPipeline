@@ -1,0 +1,32 @@
+{
+  "distribution": {
+    "records": 200,
+    "null_date_rate": 0.075,
+    "market_wrap_rate": 0.065,
+    "primary_tags": {
+      "Equity": 73,
+      "Macro": 68,
+      "Fixed Income": 26,
+      "Market Wrap": 13,
+      "Commodities": 8,
+      "FX": 8,
+      "Thematics": 4
+    },
+    "banks": {
+      "Deutsche Bank": 69,
+      "Barclays": 49,
+      "Goldman Sachs": 24,
+      "Morgan Stanley": 23,
+      "Julius Baer": 10,
+      "Union Bancaire Privée": 9,
+      "J. Safra Sarasin": 5,
+      "UBS": 4,
+      "J.P. Morgan": 2,
+      "EFG Asset Management": 2,
+      "Pictet": 2,
+      "T. Rowe Price": 1
+    },
+    "unknown_industry": 11,
+    "equity_without_companies": 38
+  }
+}
