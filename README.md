@@ -11,7 +11,9 @@ Two parts:
 
 - Python 3.11+ and [uv](https://docs.astral.sh/uv/)
 - [Bun](https://bun.sh) 1.4+ (Arch: `sudo pacman -S bun`)
-- An Anthropic API key in `ANTHROPIC_API_KEY` (only for classifying)
+- For classifying, one of:
+  - [Claude Code](https://claude.com/claude-code) installed and logged in (the default provider; uses your own Claude login, no API key), or
+  - an Anthropic API key in `ANTHROPIC_API_KEY` (`--provider anthropic`)
 
 ## Install
 
@@ -36,7 +38,7 @@ cd web && bun run build && bun run start
 
 Useful options:
 
-- `classify.py --model claude-haiku-5-5` for a cheaper run, `--model claude-opus-5-5` for the strongest. Default is `claude-sonnet-5-5`.
+- `classify.py --provider claude-code` (default, model `haiku`) or `--provider anthropic` (model `claude-sonnet-5-5`). `--model` picks another model for either, e.g. `--model sonnet`.
 - `classify.py --only 035239 035240` to classify a few emails. `--workers 4` sets parallel calls.
 - `bun run news` fetches headlines once; `bun run news --watch` keeps refreshing every 10 minutes on its own.
 - `bun run dev` runs the API and a Vite dev server with hot reload (http://localhost:5173).
@@ -56,10 +58,19 @@ Useful options:
 1. **Read** each folder: `emailbody.html` (required), every PDF, and the `inline/` images the HTML references.
 2. **Extract** text: HTML always decoded as UTF-8; data tables kept as aligned rows, layout tables flattened; full PDF text; images in document order with their nearby text.
 3. **Fill what is certain** in code: `source_file`, `pdf_attachment`, the folder name when it reads as a subject, and every date in the text with its context.
-4. **One LLM call** per email with the full text, PDF text and images. The output is constrained to the brief's tag and industry lists.
+4. **One LLM call** per email with the full text, PDF text and images. The output is constrained to the brief's tag and industry lists by a JSON schema.
 5. **Apply the brief's rules in code**, so every record follows them whatever the model returned: market wrap fields, tags in the list only, sub-tags bring their parent, primary tag in the tags, companies and industries for Equity only, `Unknown` industry when none fits, companies must appear in the text, date must be one of the dates found in the email.
 
 Nothing is cut from the model's input and nothing is tied to a particular bank or template.
+
+### Swapping the model
+
+Every provider sits behind one small interface (`LLMClient` in `pipeline/llm.py`: `classify(system, user, images) -> LLMResult`), and `make_client(provider, model)` builds one by name. Two providers ship:
+
+- `claude-code`: runs `claude -p` on the local Claude Code login. Each call is locked down (empty temp folder, no tools, no settings, no saved session) and the CLI enforces the JSON schema.
+- `anthropic`: the Anthropic API through the official SDK.
+
+Adding another (an OpenAI-compatible endpoint, a local model) is one class with a `classify` method and one entry in `PROVIDERS`. The cache key includes the provider and model, so switching never mixes results.
 
 ## Decisions on the brief's open points
 
@@ -75,7 +86,8 @@ Nothing is cut from the model's input and nothing is tied to a particular bank o
 | Digest emails | Tag everything materially covered; the dominant topic is primary. |
 | Duplicate emails | One record per folder, so duplicates are classified separately. |
 | Unexpected files | Flagged in `flags.json` for another pass. |
-| Temperature | The current API doesn't accept sampling parameters. Stability comes from a fixed prompt, constrained output and the cache. |
+| Model | Claude Haiku 5.5 through Claude Code by default: cheap, reads images, and runs on the user's own login. Larger models are one flag away. |
+| Temperature | Neither provider takes sampling parameters. Stability comes from a fixed prompt, constrained output and the cache. |
 
 ## Dashboard
 
