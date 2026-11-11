@@ -50,7 +50,7 @@ def test_end_to_end_with_fake_client(tmp_path, data):
     summary = run(data, tmp_path / "out" / "classified_emails.json", fake, workers=2)
     out, log, flags = read_outputs(tmp_path)
 
-    assert summary == {"folders": 3, "records": 2, "errors": 0, "skipped": 1, "flags": 3}
+    assert summary == {"folders": 3, "records": 2, "errors": 0, "skipped": 1, "flags": 3, "bank_renames": 0}
     assert [r["source_file"] for r in out] == ["001", "002"]
     for record in out:
         assert tuple(record) == BRIEF_FIELD_ORDER
@@ -111,3 +111,16 @@ def test_cli_main(tmp_path, data, capsys):
 
 def test_cli_missing_data_dir(tmp_path):
     assert classify.main(["--data", str(tmp_path / "nope")], client=FakeLLMClient(None)) == 2
+
+
+def test_bank_spellings_are_harmonised_across_the_run(tmp_path, data):
+    make_email(data, "004", html="<p>Bank A again, 9 April 2026</p>")
+    make_email(data, "005", html="<p>Bank A, 9 April 2026, more on Company Alpha</p>")
+    def fake(s, u, i):
+        r = result_for(u)
+        return r.model_copy(update={"bank": "BANK A plc"}) if "again" in u else r
+    summary = run(data, tmp_path / "out" / "classified_emails.json", FakeLLMClient(fake))
+    out, log, _ = read_outputs(tmp_path)
+    assert summary["bank_renames"] == 1
+    assert {r["source_file"]: r["bank"] for r in out}["004"] == "Bank A"
+    assert any("consistency" in n for n in {e["source_file"]: e for e in log}["004"]["rules"])

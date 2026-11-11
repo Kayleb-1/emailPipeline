@@ -19,6 +19,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict
 from pathlib import Path
 
+from pipeline.consistency import harmonise_banks
 from pipeline.deterministic import extract_deterministic
 from pipeline.html_text import html_to_text, load_html
 from pipeline.images import resolve_images
@@ -156,6 +157,14 @@ def run(
         if record is not None:
             records.append(record)
 
+    records, renames = harmonise_banks(records)
+    if renames:
+        by_source = {e["source_file"]: e for e in entries}
+        for r in records:
+            for old, new in renames.items():
+                entry = by_source[r.source_file]
+                if r.bank == new and entry.get("llm", {}).get("bank", "").strip() == old:
+                    entry.setdefault("rules", []).append(f"consistency: bank {old!r} -> {new!r}")
     records.sort(key=lambda r: r.source_file)
     entries.sort(key=lambda e: e["source_file"])
     flags.sort(key=lambda f: (f.source_file, f.path))
@@ -173,6 +182,7 @@ def run(
         "errors": sum(1 for e in entries if e["status"] == "error"),
         "skipped": sum(1 for e in entries if e["status"] == "skipped"),
         "flags": len(flags),
+        "bank_renames": len(renames),
     }
     if isinstance(client, CachedLLMClient):
         summary.update(cache_hits=client.hits, cache_misses=client.misses)
