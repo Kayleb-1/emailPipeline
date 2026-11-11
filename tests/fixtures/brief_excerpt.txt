@@ -1,0 +1,93 @@
+Verbatim text extracted (pypdf) from 'Hiring Task Instructions .pdf', sections 2 (Market Wrap Rule) to 3b.
+Used by tests/test_taxonomy.py to prove the constants match the brief. Do not edit.
+---
+Market Wrap Rule
+
+Before applying any asset class tags, determine whether the email is a Market Wrap. A Market Wrap is a
+short daily recap of market moves — descriptive, cross-asset, multi-region, with multiple updates
+grouped together, the table below outlines the rules of classifying an email as a market wrap.
+
+If Market Wrap = YES:
+• primary_asset_tag = "Market Wrap"
+• asset_tags = ["Market Wrap"]
+• companies_mentioned = [ ]
+• industry_subindustry = [ ]
+
+Checklist Question
+Structure - Does the article cover multiple regions (US, Europe, Asia)?
+- Does the article include multiple sections by geography?
+- Does the article summarise several markets in sequence?
+- Does the article include short bullet-point updates across topics?
+Asset Coverage - Does the article reference multiple asset classes (equities, bonds, FX,
+commodities)?
+- Are different markets discussed briefly rather than in depth?
+Timeframe - Does the article summarise what happened in the previous trading session?
+- Is the content focused on recent or overnight market moves?
+Purpose - Is the article descriptive rather than analytical?
+- Does the article lack a clear forward-looking investment view?
+Title - Does the title include terms like “Market Wrap”, “Morning Note”, “Daily
+Update”, “Market Recap”?
+Language - Is summary-style market language used across multiple sections of the
+article?
+- Are multiple asset classes described using short, descriptive statements (e.g.,
+equities fell, yields moved, FX weakened)?
+- Is the language consistently descriptive rather than analytical throughout the
+article?
+Depth - Are topics covered briefly without deep explanation?
+- Are multiple unrelated updates grouped together in one note?
+
+If Market Wrap = NO, apply the full taxonomy outlined in 3a and 3c below.
+
+
+
+
+
+3a Asset Tags
+
+Use ONLY the tags below. Assign all tags that are materially covered — not just mentioned in passing.
+Primary Asset Class Sub-Asset Classes
+Macro Developed Markets, Emerging Markets
+Fixed Income Credit Strategy, Rates Strategy, Securitisation
+Equity Company Research, Portfolio Strategy, Thematic Investing
+Commodities Energy, Metals, Agriculture
+FX USD, EUR, JPY, GBP, CHF, Other
+Thematics No sub-tags
+Market Wrap No sub-tags
+
+Important tagging rules:
+• Only tag if the topic is materially covered, not just a passing mention
+• Do NOT tag sub-tags (e.g. USD, JPY) unless the document has meaningful focused discussion on
+that specific currency
+
+3b Industry Tags
+
+Only apply industry tags when the email has an Equity tag AND discusses specific companies or sectors.
+Format: SECTOR > Subindustry
+Industry Subindustries
+BASIC MATERIALS Agriculture; Chemicals; Metals & Mining; Paper & Forest; Steel
+CONSUMER STAPLES Beverages; Consumer Products; Food; Retail; Tobacco
+CONSUMER CYCLICALS Automobiles; Branded Consumer Goods; Business Services;
+Consumer Durables; Education; Entertainment & Leisure; Gaming;
+Housing; Lodging; Media; Restaurants & Pubs; Retail; Textile,
+Apparel & Footwear; Travel
+ENERGY Clean Energy; Energy; Gas; Oil; Oil Services
+FINANCIAL SERVICES Banks; Brokers & Asset Managers; Capital Markets; Diversified
+Financials; Insurance; Real Estate; Specialty Finance
+HEALTHCARE Biotechnology; Healthcare Services; Life Sciences; Medical
+Technology; Pharmaceuticals
+INDUSTRIALS Aerospace & Defense; Capital Goods; Construction; Electrical
+Equipment; Environmental Services; Machinery; Multi-Industry;
+Packaging
+
+
+
+
+TECHNOLOGY Communications Technology; Hardware; Info Services; Internet; IT
+Services; Semiconductors; Software; Technology
+TELECOM SERVICES Communication Services; Satellite; Telecom Services; Telecom
+Wireless; Towers
+TRANSPORTATION Air Freight; Airlines; Airports; Infrastructure; Logistics; Railroads;
+Shipping; Trucking
+UTILITIES Diversified; Gas; MLPs; Power; Utilities; Water
+
+If the industry cannot be determined from the content, write: Unknown
