@@ -2,8 +2,10 @@
 
     uv run python classify.py --data ~/Downloads/Data --out classified_emails.json
 
-Needs ANTHROPIC_API_KEY. Results are cached under .cache/llm, so re-runs only
-call the model for emails whose content (or the prompt) changed.
+The model is pluggable (--provider). The default, claude-code, runs Claude through
+the local Claude Code CLI on your own login, so no API key is needed; anthropic
+uses the API with ANTHROPIC_API_KEY. Results are cached under .cache/llm, so
+re-runs only call the model for emails whose content (or the prompt) changed.
 """
 
 from __future__ import annotations
@@ -13,7 +15,7 @@ import logging
 import sys
 from pathlib import Path
 
-from pipeline.llm import DEFAULT_EFFORT, DEFAULT_MODEL, LLMClient
+from pipeline.llm import DEFAULT_EFFORT, DEFAULT_PROVIDER, PROVIDERS, LLMClient, make_client
 from pipeline.run import run
 
 
@@ -25,10 +27,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--flags", type=Path, default=None, help="default: next to --out")
     p.add_argument("--cache", type=Path, default=Path(".cache/llm"))
     p.add_argument("--no-cache", action="store_true")
-    p.add_argument("--workers", type=int, default=4, help="parallel LLM calls")
-    p.add_argument("--model", default=DEFAULT_MODEL)
+    p.add_argument("--workers", type=int, default=3, help="parallel LLM calls")
+    p.add_argument("--provider", default=DEFAULT_PROVIDER, choices=sorted(PROVIDERS),
+                   help="; ".join(f"{k}: {v['note']}" for k, v in PROVIDERS.items()))
+    p.add_argument("--model", default=None,
+                   help="model for the provider (default: " + ", ".join(
+                       f"{k}={v['default_model']}" for k, v in PROVIDERS.items()) + ")")
     p.add_argument("--effort", default=DEFAULT_EFFORT,
-                   choices=["low", "medium", "high", "xhigh", "max"])
+                   choices=["low", "medium", "high", "xhigh", "max"], help="anthropic provider only")
     p.add_argument("--only", nargs="*", help="classify only these folder names")
     return p.parse_args(argv)
 
@@ -40,9 +46,7 @@ def main(argv: list[str] | None = None, client: LLMClient | None = None) -> int:
         print(f"data folder not found: {args.data}", file=sys.stderr)
         return 2
     if client is None:
-        from pipeline.llm import AnthropicLLMClient
-
-        client = AnthropicLLMClient(model=args.model, effort=args.effort)
+        client = make_client(args.provider, args.model, args.effort)
     summary = run(
         args.data.expanduser(), args.out, client,
         log_path=args.log, flags_path=args.flags,

@@ -116,9 +116,9 @@ def run(
 ) -> dict:
     """Classify every email folder under ``data_dir``. Returns a summary dict."""
     if client is None:
-        from pipeline.llm import AnthropicLLMClient
+        from pipeline.llm import make_client
 
-        client = AnthropicLLMClient()
+        client = make_client()
     if cache_dir is not None:
         client = CachedLLMClient(client, cache_dir)
     log_path = log_path or out_path.with_name("classification_log.jsonl")
