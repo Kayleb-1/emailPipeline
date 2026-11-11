@@ -3,6 +3,8 @@
 //   bun run start            serve the built app (dist/) plus the API on PORT (default 3000)
 //   bun run dev              API only; Vite serves the app and proxies /api and /raw here
 //
+//   --no-news                don't run the 10-minute headline refresh
+//
 // Environment: DB_PATH (default data/emails.db), DATA_DIR (default: the folder the
 // index was built from), NEWS_PATH (default data/news.json), PORT.
 
@@ -11,6 +13,7 @@ import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { createApp } from "./app.ts";
 import { meta } from "./query.ts";
+import { startNewsLoop } from "../scripts/fetch-news.ts";
 
 const root = resolve(import.meta.dir, "..");
 const dbPath = resolve(process.env.DB_PATH ?? join(root, "data", "emails.db"));
@@ -24,12 +27,11 @@ if (!existsSync(dataDir)) console.warn(`Warning: data folder ${dataDir} not foun
 
 const dev = process.argv.includes("--dev");
 const port = Number(process.env.PORT ?? (dev ? 3001 : 3000));
-const app = createApp({
-  db,
-  dataDir,
-  distDir: dev ? undefined : join(root, "dist"),
-  newsPath: resolve(process.env.NEWS_PATH ?? join(root, "data", "news.json")),
-});
+const newsPath = resolve(process.env.NEWS_PATH ?? join(root, "data", "news.json"));
+const app = createApp({ db, dataDir, distDir: dev ? undefined : join(root, "dist"), newsPath });
+
+// Headlines refresh every 10 minutes while the dashboard runs (--no-news to skip).
+if (!process.argv.includes("--no-news")) startNewsLoop(newsPath);
 
 const server = Bun.serve({ port, hostname: "127.0.0.1", fetch: app });
 console.log(`Dashboard ${dev ? "API" : ""} on http://${server.hostname}:${server.port}  (index: ${dbPath}, data: ${dataDir})`);
