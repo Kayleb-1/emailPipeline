@@ -10,6 +10,7 @@ __pycache__/
 
 # Pipeline runtime artefacts (classified_emails.json IS committed)
 .cache/
+# llm_cache/ IS committed: saved model answers, so classify.py replays offline
 classification_log.jsonl
 flags.json
 

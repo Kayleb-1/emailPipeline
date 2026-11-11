@@ -4,7 +4,7 @@
 
 The model is pluggable (--provider). The default, claude-code, runs Claude through
 the local Claude Code CLI on your own login, so no API key is needed; anthropic
-uses the API with ANTHROPIC_API_KEY. Results are cached under .cache/llm, so
+uses the API with ANTHROPIC_API_KEY. Answers are saved in llm_cache/ (committed), so
 re-runs only call the model for emails whose content (or the prompt) changed.
 """
 
@@ -25,7 +25,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--out", type=Path, default=Path("classified_emails.json"))
     p.add_argument("--log", type=Path, default=None, help="default: next to --out")
     p.add_argument("--flags", type=Path, default=None, help="default: next to --out")
-    p.add_argument("--cache", type=Path, default=Path(".cache/llm"))
+    p.add_argument("--cache", type=Path, default=Path("llm_cache"),
+                   help="saved model answers, keyed by a hash of the exact input")
     p.add_argument("--no-cache", action="store_true")
     p.add_argument("--workers", type=int, default=3, help="parallel LLM calls")
     p.add_argument("--provider", default=DEFAULT_PROVIDER, choices=sorted(PROVIDERS),
