@@ -1,5 +1,5 @@
 # Raw email data stays out of git (bank research, ~46 MB)
-Data/
+/Data
 *.pdf
 
 # Python
