@@ -16,10 +16,10 @@ export const sortMonths = (keys: string[]) =>
   [...keys].sort((a, b) => (a === NO_DATE ? 1 : b === NO_DATE ? -1 : b.localeCompare(a)));
 
 export function initials(name: string): string {
-  const words = name.match(/[\p{L}\p{N}]+/gu) ?? [];
-  if (!words.length) return "?";
-  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
-  return (words[0][0] + words[1][0]).toUpperCase();
+  const [first = "", second = ""] = name.match(/[\p{L}\p{N}]+/gu) ?? [];
+  if (!first) return "?";
+  if (!second) return first.slice(0, 2).toUpperCase();
+  return (first.slice(0, 1) + second.slice(0, 1)).toUpperCase();
 }
 
 /** Split an FTS snippet into plain and highlighted parts (markers are control chars). */
