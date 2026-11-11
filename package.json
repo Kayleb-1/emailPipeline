@@ -1,0 +1,11 @@
+{
+  "name": "compuj-email-classifier",
+  "private": true,
+  "description": "Market research email classifier (Python) and analyst dashboard (Svelte on Bun)",
+  "scripts": {
+    "classify": "uv run python classify.py",
+    "dashboard": "bun web/scripts/dashboard.ts",
+    "news": "cd web && bun run news",
+    "test": "uv run pytest && cd web && bun test && bun run check"
+  }
+}
