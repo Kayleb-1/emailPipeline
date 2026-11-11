@@ -107,3 +107,124 @@ def classify_email(
     """One call per email, images included when present."""
     system, user = build_prompt(parsed, det)
     return client.classify(system, user, parsed.images)
+
+
+# --- Anthropic adapter -------------------------------------------------------------
+
+DEFAULT_MODEL = "claude-opus-5-5"
+DEFAULT_EFFORT = "medium"
+FALLBACK_BETA = "server-side-fallback-2026-07-01"
+
+_MAGIC: list[tuple[bytes, str]] = [
+    (b"\x89PNG\r\n\x1a\n", "image/png"),
+    (b"\xff\xd8\xff", "image/jpeg"),
+    (b"GIF87a", "image/gif"),
+    (b"GIF89a", "image/gif"),
+]
+
+
+def sniff_media_type(data: bytes) -> str | None:
+    """Image type from the file's bytes (extensions are missing or wrong in the wild)."""
+    for magic, media in _MAGIC:
+        if data.startswith(magic):
+            return media
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "image/webp"
+    return None
+
+
+def llm_json_schema() -> dict:
+    """LLMResult's schema in the strict form structured outputs expect."""
+
+    def strip(node):
+        if isinstance(node, dict):
+            if isinstance(node.get("title"), str):
+                node.pop("title")  # a display annotation, not the "title" field
+            for key, value in node.items():
+                if key == "properties":
+                    for prop in value.values():
+                        strip(prop)
+                else:
+                    strip(value)
+        elif isinstance(node, list):
+            for value in node:
+                strip(value)
+        return node
+
+    schema = strip(LLMResult.model_json_schema())
+    schema["additionalProperties"] = False
+    schema["required"] = list(schema["properties"])
+    return schema
+
+
+def image_content(images: list[InlineImage]) -> tuple[list[dict], list[str]]:
+    """Content blocks for the images, each labelled to match the prompt's image list.
+
+    Formats the API can't take are described in text instead and reported as warnings.
+    """
+    import base64
+
+    blocks: list[dict] = []
+    warnings: list[str] = []
+    for i, img in enumerate(images, 1):
+        data = img.path.read_bytes()
+        media = sniff_media_type(data)
+        if media is None:
+            blocks.append({"type": "text", "text": f"Image {i} ({img.path.name}): not attached, unsupported format."})
+            warnings.append(f"{img.path.name}: unsupported image format, not sent")
+            continue
+        blocks.append({"type": "text", "text": f"Image {i} ({img.path.name}):"})
+        blocks.append({
+            "type": "image",
+            "source": {"type": "base64", "media_type": media,
+                       "data": base64.standard_b64encode(data).decode("ascii")},
+        })
+    return blocks, warnings
+
+
+class AnthropicLLMClient:
+    """Claude via the Anthropic SDK: image input + structured output (JSON schema).
+
+    Sampling parameters (temperature) are no longer accepted by the API, so run-to-run
+    stability comes from the fixed prompt, the constrained schema and the cache.
+    Server-side refusal fallback is on, so a policy decline is retried on a fallback
+    model inside the same call.
+    """
+
+    def __init__(self, model: str = DEFAULT_MODEL, effort: str = DEFAULT_EFFORT,
+                 max_tokens: int = 16000, sdk_client=None):
+        if sdk_client is None:
+            import anthropic
+
+            sdk_client = anthropic.Anthropic(max_retries=4)
+        self.sdk = sdk_client
+        self.model = model
+        self.effort = effort
+        self.max_tokens = max_tokens
+        self.model_id = f"anthropic/{model}/effort={effort}"
+        self.last_warnings: list[str] = []
+        self._schema = llm_json_schema()
+
+    def classify(self, system: str, user: str, images: list[InlineImage]) -> LLMResult:
+        blocks, self.last_warnings = image_content(images)
+        response = self.sdk.beta.messages.create(
+            model=self.model,
+            max_tokens=self.max_tokens,
+            system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
+            messages=[{"role": "user", "content": [*blocks, {"type": "text", "text": user}]}],
+            output_config={
+                "effort": self.effort,
+                "format": {"type": "json_schema", "schema": self._schema},
+            },
+            betas=[FALLBACK_BETA],
+            fallbacks="default",
+        )
+        if response.stop_reason == "refusal":
+            details = getattr(response, "stop_details", None)
+            raise LLMResponseError(f"model declined: {getattr(details, 'category', None)}")
+        if response.stop_reason == "max_tokens":
+            raise LLMResponseError("response cut off at max_tokens")
+        text = next((b.text for b in response.content if b.type == "text"), None)
+        if text is None:
+            raise LLMResponseError("response has no text block")
+        return parse_llm_response(text)
